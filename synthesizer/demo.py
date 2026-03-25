@@ -1,22 +1,25 @@
 import os
 import logging
+from pathlib import Path
 
 import numpy as np
 import svgwrite
 
-import drawing
-import lyrics
-from rnn import rnn
+from . import drawing
+from . import lyrics
+from .rnn import rnn
 
+script_dir = Path(__file__).resolve().parent
 
 class Hand(object):
 
     def __init__(self):
         os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+
         self.nn = rnn(
-            log_dir='logs',
-            checkpoint_dir='checkpoints',
-            prediction_dir='predictions',
+            log_dir=script_dir / 'logs',
+            checkpoint_dir=script_dir / 'checkpoints',
+            prediction_dir=script_dir / 'predictions',
             learning_rates=[.0001, .00005, .00002],
             batch_sizes=[32, 64, 64],
             patiences=[1500, 1000, 500],
@@ -30,7 +33,7 @@ class Hand(object):
             enable_parameter_averaging=False,
             min_steps_to_checkpoint=2000,
             log_interval=20,
-            logging_level=logging.CRITICAL,
+            logging_level=logging.DEBUG,
             grad_clip=10,
             lstm_size=400,
             output_mixture_components=20,
@@ -73,8 +76,8 @@ class Hand(object):
 
         if styles is not None:
             for i, (cs, style) in enumerate(zip(lines, styles)):
-                x_p = np.load('styles/style-{}-strokes.npy'.format(style))
-                c_p = np.load('styles/style-{}-chars.npy'.format(style)).tostring().decode('utf-8')
+                x_p = np.load(script_dir / 'styles/style-{}-strokes.npy'.format(style))
+                c_p = np.load(script_dir / 'styles/style-{}-chars.npy'.format(style)).tostring().decode('utf-8')
 
                 c_p = str(c_p) + " " + cs
                 c_p = drawing.encode_ascii(c_p)

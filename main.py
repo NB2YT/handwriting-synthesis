@@ -1,4 +1,4 @@
-from demo import Hand
+from synthesizer.demo import Hand
 import numpy as np
 import textwrap
 
@@ -12,6 +12,8 @@ if __name__ == "__main__":
     biases = [0.75 for i in lines]
     #0-12
     styles = [7 for i in lines]
+
+    
 
     hand.write(
         filename='img/test.svg',

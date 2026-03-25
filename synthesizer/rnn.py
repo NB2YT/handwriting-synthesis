@@ -4,12 +4,12 @@ import os
 import numpy as np
 import tensorflow as tf
 
-import drawing
-from data_frame import DataFrame
-from rnn_cell import LSTMAttentionCell
-from rnn_ops import rnn_free_run
-from tf_base_model import TFBaseModel
-from tf_utils import time_distributed_dense_layer
+from . import drawing
+from .data_frame import DataFrame
+from .rnn_cell import LSTMAttentionCell
+from .rnn_ops import rnn_free_run
+from .tf_base_model import TFBaseModel
+from .tf_utils import time_distributed_dense_layer
 
 
 class DataReader(object):
