@@ -5,3 +5,7 @@ data/processed
 
 logs
 predictions
+
+venv/
+__pycache__/
+*.pyc
