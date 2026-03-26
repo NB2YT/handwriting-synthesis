@@ -339,10 +339,6 @@ class TFBaseModel(object):
         date_str = datetime.now().strftime('%Y-%m-%d_%H-%M')
         log_file = 'log_{}.txt'.format(date_str)
 
-        try:                 # Python 2
-            reload(logging)  # bad
-        except NameError:    # Python 3
-            import logging
         logging.basicConfig(
             filename=os.path.join(log_dir, log_file),
             level=self.logging_level,

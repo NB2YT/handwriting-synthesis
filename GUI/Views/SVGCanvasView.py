@@ -1,9 +1,10 @@
 from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene
 from PyQt5.QtSvg import QGraphicsSvgItem, QSvgRenderer
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QByteArray
 from PyQt5.QtGui import QPainter
 
 from GUI.Workers.HandwritingWorker import HandwritingWorker
+from GUI.SVG.NotebookPaperGenerator import GenerateNotebookPaperSVG
 
 class SVGCanvasView(QGraphicsView):
     def __init__(self):
