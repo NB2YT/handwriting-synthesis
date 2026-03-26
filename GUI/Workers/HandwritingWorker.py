@@ -2,7 +2,7 @@ import textwrap
 
 from PyQt5.QtCore import QByteArray, QThread, pyqtSignal
 
-from synthesizer.hand import Hand
+from synthesizer2.hand import Hand
 
 from GUI.SVG.NotebookPaperGenerator import GenerateNotebookPaperSVG
 
@@ -31,7 +31,7 @@ class HandwritingWorker(QThread):
                 styles=styles,
             )
 
-            svg.add(GenerateNotebookPaperSVG())
+            #svg.add(GenerateNotebookPaperSVG())
 
             svg_data = QByteArray(svg.tostring().encode('utf-8'))
 
