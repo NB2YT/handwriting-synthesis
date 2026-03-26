@@ -2,6 +2,8 @@ from synthesizer.demo import Hand
 import numpy as np
 import textwrap
 
+from synthesizer.demo import Hand
+
 if __name__ == "__main__":
     hand = Hand()
 
