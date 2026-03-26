@@ -2,7 +2,7 @@ import textwrap
 
 from PyQt5.QtCore import QByteArray, QThread, pyqtSignal
 
-from synthesizer2.hand import Hand
+from synthesizer_tf2.hand import Hand
 
 from GUI.SVG.NotebookPaperGenerator import GenerateNotebookPaperSVG
 
@@ -21,7 +21,7 @@ class HandwritingWorker(QThread):
         
             lines = textwrap.wrap(text, width=30)
             #max = 2.5 min=0.15
-            biases = [0.75 for i in lines]
+            biases = [2.5 for i in lines]
             #0-12
             styles = [7 for i in lines]
 
