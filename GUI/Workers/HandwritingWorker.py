@@ -33,6 +33,6 @@ class HandwritingWorker(QThread):
 
             #svg.add(GenerateNotebookPaperSVG())
 
-            svg_data = QByteArray(svg.tostring().encode('utf-8'))
+            svg_data = QByteArray(svg.as_svg().encode('utf-8'))
 
             self.finished.emit(svg_data)

@@ -1,7 +1,7 @@
-import svgwrite
+from drawsvg import Drawing, Rectangle, Use
 
 #millimeters
-def GenerateNotebookPaperSVG() -> svgwrite.Drawing:
+def GenerateNotebookPaperSVG() -> Drawing:
     width = 200
     height = 600
     top_margin = 30
@@ -10,30 +10,20 @@ def GenerateNotebookPaperSVG() -> svgwrite.Drawing:
     horizontal_line_thickness = 0.6
     vertical_line_thickness = 0.6
 
-    dwg = svgwrite.Drawing()
+    d = Drawing(width, height, id_prefix="notebook_paper")
 
-    #paper
-    dwg.add(dwg.rect(
-        insert=(0, 0), 
-        size=(width, height), 
-        fill='white'
-    ))
+    paper = Rectangle(0, 0, width, height, fill="white")
+    d.append(paper)
 
-    #vertical line
-    dwg.add(dwg.rect(
-        insert=(left_margin, 0), 
-        size=(vertical_line_thickness, height),
-        fill='red'
-    ))
+    vertical_line = Rectangle(left_margin, 0, vertical_line_thickness, height, fill="red")
+    d.append(vertical_line)
 
     #horizontal lines
+    horizontal_line_reference = Rectangle(0, 0, width, horizontal_line_thickness, fill="blue")
     spacing = (height - top_margin) / horizontal_line_count
     for i in range(horizontal_line_count):
-        y = top_margin + spacing * i
-        dwg.add(dwg.rect(
-            insert=(0, y),
-            size=(width, horizontal_line_thickness),
-            fill='blue'
-        ))
+        y = top_margin + (spacing * i)
+        horizontal_line = Use(horizontal_line_reference, 0, y)
+        d.append(horizontal_line)
 
-    return dwg
+    return d
