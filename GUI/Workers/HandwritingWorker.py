@@ -4,6 +4,7 @@ from PyQt5.QtCore import QByteArray, QThread, pyqtSignal
 
 from synthesizer.hand import Hand
 
+from GUI.SVG.NotebookPaperGenerator import GenerateNotebookPaperSVG
 
 class HandwritingWorker(QThread):
     finished = pyqtSignal(QByteArray)
@@ -29,6 +30,8 @@ class HandwritingWorker(QThread):
                 biases=biases,
                 styles=styles,
             )
+
+            svg.add(GenerateNotebookPaperSVG())
 
             svg_data = QByteArray(svg.tostring().encode('utf-8'))
 
