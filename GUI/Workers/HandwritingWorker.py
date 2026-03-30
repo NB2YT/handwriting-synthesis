@@ -2,14 +2,14 @@ import textwrap
 import drawsvg as dw
 from typing import List
 
-from PyQt5.QtCore import QByteArray, QThread, pyqtSignal
+from PySide6.QtCore import QByteArray, QThread, Signal
 
 from synthesizer_tf2.hand import Hand
 from SVG.NotebookPaperGenerator import GenerateNotebookPaperSVG
 from SVG.AbsoluteVectorGraphic import AbsoluteVectorGraphic
 
 class HandwritingWorker(QThread):
-    finished = pyqtSignal(QByteArray)
+    finished = Signal(QByteArray)
 
     def run(self):
         print("loading model")

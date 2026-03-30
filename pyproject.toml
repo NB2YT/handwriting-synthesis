@@ -1,14 +1,14 @@
 [project]
 name = "handwriting-synthesis"
 version = "0.1.0"
-description = "Add your description here"
+description = "A GUI for handwriting synthesis to make exporting writing to svg easier."
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "drawsvg>=2.4.1",
     "matplotlib>=3.10.8",
     "pandas>=3.0.1",
-    "pyqt5>=5.15.11",
+    "pyside6>=6.11.0",
     "scikit-learn>=1.8.0",
     "scipy>=1.17.1",
     "svgwrite>=1.4.3",

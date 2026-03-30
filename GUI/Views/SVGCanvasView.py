@@ -1,7 +1,8 @@
-from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene
-from PyQt5.QtSvg import QGraphicsSvgItem, QSvgRenderer
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QPainter
+from PySide6.QtWidgets import QGraphicsView, QGraphicsScene
+from PySide6.QtSvg import QSvgRenderer
+from PySide6.QtSvgWidgets import QGraphicsSvgItem
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QPainter
 
 from GUI.Workers.HandwritingWorker import HandwritingWorker
 from SVG.NotebookPaperGenerator import GenerateNotebookPaperSVG
