@@ -4,6 +4,7 @@ from pathlib import Path
 
 import numpy as np
 import drawsvg as dw
+from SVG.Handwriting import HandwritingLine, Handwriting
 
 from . import drawing
 from .rnn import rnn
@@ -32,7 +33,7 @@ class Hand(object):
             enable_parameter_averaging=False,
             min_steps_to_checkpoint=2000,
             log_interval=20,
-            logging_level=logging.DEBUG,
+            logging_level=logging.INFO,
             grad_clip=10,
             lstm_size=400,
             output_mixture_components=20,

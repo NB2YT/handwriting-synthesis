@@ -1,10 +1,12 @@
 import textwrap
+import drawsvg as dw
+from typing import List
 
 from PyQt5.QtCore import QByteArray, QThread, pyqtSignal
 
 from synthesizer_tf2.hand import Hand
-
-from GUI.SVG.NotebookPaperGenerator import GenerateNotebookPaperSVG
+from SVG.NotebookPaperGenerator import GenerateNotebookPaperSVG
+from SVG.AbsoluteVectorGraphic import AbsoluteVectorGraphic
 
 class HandwritingWorker(QThread):
     finished = pyqtSignal(QByteArray)
@@ -21,18 +23,32 @@ class HandwritingWorker(QThread):
         
             lines = textwrap.wrap(text, width=30)
             #max = 2.5 min=0.15
-            biases = [2.5 for i in lines]
+            bias = .75
             #0-12
-            styles = [7 for i in lines]
+            style = 12
 
-            svg = self.hand.write(
-                lines=lines,
-                biases=biases,
-                styles=styles,
-            )
+            generated_lines: List[AbsoluteVectorGraphic] = []
+            for line in lines:
+                generated_lines.append(self.hand.write(lines=[line], biases=[bias], styles=[style]))
 
-            #svg.add(GenerateNotebookPaperSVG())
 
-            svg_data = QByteArray(svg.as_svg().encode('utf-8'))
+            d = dw.Drawing(1200, 1200)
+
+            g = dw.Group(transform="scale(2)")
+            for element in GenerateNotebookPaperSVG().elements:
+                g.append(element)
+            d.append(g)
+
+            for line in generated_lines:
+                for element in line.elements:
+                    d.append(element)
+
+            d.save_svg("test.svg")
+
+            #d = self.hand.write(lines=lines, biases=[bias for _ in lines], styles=[style for _ in lines])
+
+            svg_data = QByteArray(d.as_svg().encode('utf-8'))
+
+            #print(d.as_svg())
 
             self.finished.emit(svg_data)
