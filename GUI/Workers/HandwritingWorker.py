@@ -30,12 +30,12 @@ class HandwritingWorker(QThread):
             handwriting = self.hand.write(lines=lines, biases=[bias for _ in lines], styles=[style for _ in lines])
             print(handwriting)
 
-            drawing = dw.Drawing(1000, 1000)
-            drawing.append(NotebookPaper(width=210, height=297, top_margin=20, left_margin=20, horizontal_line_count=20, horizontal_line_thickness=0.5, vertical_line_thickness=0.5).as_group())
-            drawing.append(handwriting.as_group())
+            avg = AbsoluteVectorGraphic()
+            avg.append(NotebookPaper(width=210, height=297, top_margin=20, left_margin=20, horizontal_line_count=20, horizontal_line_thickness=0.5, vertical_line_thickness=0.5))
+            avg.append(handwriting)
             
-            svg_data = QByteArray(drawing.as_svg().encode('utf-8'))
+            svg_data = QByteArray(avg.export(size=("1000mm", "1000mm")).encode('utf-8'))
 
-            drawing.save_svg("test.svg")
+            avg.as_drawing(size=("1000mm", "1000mm")).save_svg("test.svg")
 
             self.finished.emit(svg_data)

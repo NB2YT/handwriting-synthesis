@@ -1,20 +1,21 @@
 import drawsvg as dw
 
 from SVG.AbsoluteVectorGraphic import AVGElementAdapter
-from SVG.Units import Millimeter as mm
 
 class NotebookPaper(AVGElementAdapter):
     #unit = millimeters
     def __init__(self, width, height, top_margin, left_margin, horizontal_line_count, horizontal_line_thickness, vertical_line_thickness):
-        self.width = mm(width)
-        self.height = mm(height)
-        self.top_margin = mm(top_margin)
-        self.left_margin = mm(left_margin)
+        self.width = width
+        self.height = height
+        self.top_margin = top_margin
+        self.left_margin = left_margin
         self.horizontal_line_count = horizontal_line_count
-        self.horizontal_line_thickness = mm(horizontal_line_thickness)
-        self.vertical_line_thickness = mm(vertical_line_thickness)
+        self.horizontal_line_thickness = horizontal_line_thickness
+        self.vertical_line_thickness = vertical_line_thickness
+        
+        super().__init__([self._generate()])
 
-    def as_group(self) -> dw.Group:
+    def _generate(self) -> dw.Group:
         group = dw.Group(id="notebook_paper")
 
         paper = dw.Rectangle(0, 0, self.width, self.height, fill="white")
@@ -34,6 +35,6 @@ class NotebookPaper(AVGElementAdapter):
 
         return group
 
-    def as_drawsvg_elements(self):
-        return [self.as_group()]
+    def as_group(self) -> dw.Group:
+        return self._elements[0]
 

@@ -5,8 +5,6 @@ import drawsvg as dw
 from typing import List, Tuple
 from abc import ABC, abstractmethod
 
-from SVG.Units import Millimeter, assert_px_to_mm
-
 class AVGElement(ABC):
     @abstractmethod
     def __init__(self, id=""):
@@ -14,7 +12,7 @@ class AVGElement(ABC):
 
     #relative
     @abstractmethod
-    def move(self, x: Millimeter, y: Millimeter) -> None:
+    def move(self, x, y) -> None:
         pass
 
     @abstractmethod
@@ -30,12 +28,8 @@ class AVGElementAdapter(AVGElement):
     def __init__(self, elements: List[dw.DrawingElement]):
         self._elements: List[dw.DrawingElement] = elements
 
-        #make sure all elements are using millimeters and not pixels, and convert if they are using pixels
-        #the move function does this automatically, so we can just call move with 0, 0 to convert all elements to millimeters
-        self.move(0, 0)
 
-
-    def _move_element(self, element: dw.DrawingElement, x: Millimeter, y: Millimeter):
+    def _move_element(self, element: dw.DrawingElement, x, y):
         if isinstance(element, dw.DrawingParentElement):
             for child in element.children:
                 self._move_element(child, x, y)
@@ -46,11 +40,11 @@ class AVGElementAdapter(AVGElement):
         
         #everything else that has x and y args
         elif isinstance(element, dw.DrawingBasicElement):
-            element.args["x"] = str(assert_px_to_mm(element.args["x"]) + x)
-            element.args["y"] = str(assert_px_to_mm(element.args["y"]) + y)
+            element.args["x"] += x
+            element.args["y"] += y
 
     #relative
-    def move(self, x: Millimeter, y: Millimeter):
+    def move(self, x, y):
         for element in self._elements:
             self._move_element(element, x, y)
 
@@ -61,13 +55,16 @@ class AbsoluteVectorGraphic():
     def __init__(self):
         self._elements: List[AVGElement] = []
 
-    def append(self, element: AVGElement, offset: Tuple[int, int]=(0, 0)):
+    def append(self, element: AVGElement, offset=(0, 0)):
         element.move(*offset)
         self._elements.append(element)
 
-    def export(self, size: Tuple[int, int]) -> str:
+    def as_drawing(self, size: Tuple[int, int]) -> dw.Drawing:
         drawing = dw.Drawing(size[0], size[1])
         for avg_element in self._elements:
             for dw_element in avg_element.as_drawsvg_elements():
                 drawing.append(dw_element)
-        return drawing.as_svg()
+        return drawing
+    
+    def export(self, size: Tuple[int, int]) -> str:
+        return self.as_drawing(size).as_svg()
