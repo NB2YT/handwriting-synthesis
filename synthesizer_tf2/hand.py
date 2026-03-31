@@ -41,7 +41,7 @@ class Hand(object):
         )
         self.nn.restore()
 
-    def write(self, lines, biases=None, styles=None, stroke_colors=None, stroke_widths=None) -> dw.Drawing:
+    def write(self, lines, biases=None, styles=None, stroke_colors=None, stroke_widths=None) -> Handwriting:
         valid_char_set = set(drawing.alphabet)
         for line_num, line in enumerate(lines):
             if len(line) > 75:
@@ -110,7 +110,7 @@ class Hand(object):
         samples = [sample[~np.all(sample == 0.0, axis=1)] for sample in samples]
         return samples
 
-    def _draw(self, strokes, lines, stroke_colors=None, stroke_widths=None) -> dw.Drawing:
+    def _draw(self, strokes, lines, stroke_colors=None, stroke_widths=None) -> Handwriting:
         stroke_colors = stroke_colors or ['black']*len(lines)
         stroke_widths = stroke_widths or [2]*len(lines)
 
@@ -118,10 +118,13 @@ class Hand(object):
         view_width = 1000
         view_height = line_height*(len(strokes) + 1)
 
-        d = dw.Drawing(view_width, view_height)
+        #remove
+        #d = dw.Drawing(view_width, view_height)
 
-        #background
-        d.append(dw.Rectangle(0, 0, view_width, view_height, fill="white"))
+        handwriting = Handwriting()
+
+        #background #remove
+        #d.append(dw.Rectangle(0, 0, view_width, view_height, fill="white"))
 
         initial_coord = np.array([0, -(3 * line_height / 4)])
         for offsets, line, color, width in zip(strokes, lines, stroke_colors, stroke_widths):
@@ -140,16 +143,24 @@ class Hand(object):
             strokes[:, 0] += (view_width - strokes[:, 0].max()) / 2
 
             prev_eos = 1.0
-            p = dw.Path(stroke=color, fill="none", width=width, linecap="round")
-            p.M(0, 0)
+
+            #remove
+            #p = dw.Path(stroke=color, fill="none", width=width, linecap="round")
+
+            path = HandwritingLine(color=color, width=width)
+
+            #remove
+            #p.M(0, 0)
+
+            path.start_feature(0, 0)
             for x, y, eos in zip(*strokes.T):
                 if prev_eos == 1.0:
-                    p.M(x, y)
+                    path.start_feature(x, y)
                 else:
-                    p.L(x, y)
+                    path.continue_feature(x, y)
                 prev_eos = eos
-            d.append(p)
+            handwriting.append_line(path)
 
             initial_coord[1] -= line_height
 
-        return d
+        return handwriting

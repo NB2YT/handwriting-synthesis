@@ -1,35 +1,73 @@
+#the point of AVG is to make exported SVGs eaiser to use by external programs like 
+#pen plotter softwares. This project was made to easily make handwriting for penplotters.
+
 import drawsvg as dw
 from typing import List, Tuple
 from abc import ABC, abstractmethod
 
+from SVG.Units import Millimeter, assert_px_to_mm
+
+class AVGElement(ABC):
+    @abstractmethod
+    def __init__(self, id=""):
+        pass
+
+    #relative
+    @abstractmethod
+    def move(self, x: Millimeter, y: Millimeter) -> None:
+        pass
+
+    @abstractmethod
+    def as_drawsvg_elements(self) -> List[dw.DrawingElement]:
+        pass
+
+
+#generic wrapper for drawsvg elements to be used in the AbsoluteVectorGraphic. 
+#This only works with elements that use x and y args for their position, 
+#but this includes some of the basic shapes (rect, circle).
+#any element that is path based cannot use this wrapper
+class AVGElementAdapter(AVGElement):
+    def __init__(self, elements: List[dw.DrawingElement]):
+        self._elements: List[dw.DrawingElement] = elements
+
+        #make sure all elements are using millimeters and not pixels, and convert if they are using pixels
+        #the move function does this automatically, so we can just call move with 0, 0 to convert all elements to millimeters
+        self.move(0, 0)
+
+
+    def _move_element(self, element: dw.DrawingElement, x: Millimeter, y: Millimeter):
+        if isinstance(element, dw.DrawingParentElement):
+            for child in element.children:
+                self._move_element(child, x, y)
+        
+        #paths are a special case because they use a list of commands instead of x and y args
+        elif isinstance(element, dw.Path):
+            raise Exception("Path elements cannot be used with the AVGElementAdapter. Please create a custom adapter for path elements.")
+        
+        #everything else that has x and y args
+        elif isinstance(element, dw.DrawingBasicElement):
+            element.args["x"] = str(assert_px_to_mm(element.args["x"]) + x)
+            element.args["y"] = str(assert_px_to_mm(element.args["y"]) + y)
+
+    #relative
+    def move(self, x: Millimeter, y: Millimeter):
+        for element in self._elements:
+            self._move_element(element, x, y)
+
+    def as_drawsvg_elements(self) -> List[dw.DrawingElement]:
+        return self._elements
+
 class AbsoluteVectorGraphic():
     def __init__(self):
-        self._elements: List[dw.DrawingElement] = []
+        self._elements: List[AVGElement] = []
 
-    def append(self, drawing: dw.Drawing, offset: Tuple[int, int]=(0, 0)):
-        group = dw.Group()
-        for element in drawing.elements:
-            element.args["x"] += offset[0]
-            element.args["y"] += offset[1]
-            group.append(element)
-        self._elements.append(group)
-        return group
+    def append(self, element: AVGElement, offset: Tuple[int, int]=(0, 0)):
+        element.move(*offset)
+        self._elements.append(element)
 
     def export(self, size: Tuple[int, int]) -> str:
         drawing = dw.Drawing(size[0], size[1])
-        for element in self._elements:
-            drawing.append(element)
+        for avg_element in self._elements:
+            for dw_element in avg_element.as_drawsvg_elements():
+                drawing.append(dw_element)
         return drawing.as_svg()
-    
-class AVGElement(ABC):
-    def __init__(self, id=""):
-        self._elements = dw.Group(id=id)
-
-    @abstractmethod
-    def move(self, x, y):
-        pass
-
-    @property
-    @abstractmethod
-    def elements(self) -> List[dw.DrawingElement]:
-        pass

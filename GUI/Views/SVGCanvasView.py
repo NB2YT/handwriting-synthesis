@@ -5,7 +5,6 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QPainter
 
 from GUI.Workers.HandwritingWorker import HandwritingWorker
-from SVG.NotebookPaperGenerator import GenerateNotebookPaperSVG
 
 class SVGCanvasView(QGraphicsView):
     def __init__(self):

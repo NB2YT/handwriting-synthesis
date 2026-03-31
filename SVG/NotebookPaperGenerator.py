@@ -1,29 +1,39 @@
-from drawsvg import Drawing, Rectangle, Use
+import drawsvg as dw
 
-#millimeters
-def GenerateNotebookPaperSVG() -> Drawing:
-    width = 200
-    height = 600
-    top_margin = 30
-    left_margin = 40
-    horizontal_line_count = 26
-    horizontal_line_thickness = 0.6
-    vertical_line_thickness = 0.6
+from SVG.AbsoluteVectorGraphic import AVGElementAdapter
+from SVG.Units import Millimeter as mm
 
-    d = Drawing(width, height, id_prefix="notebook_paper")
+class NotebookPaper(AVGElementAdapter):
+    #unit = millimeters
+    def __init__(self, width, height, top_margin, left_margin, horizontal_line_count, horizontal_line_thickness, vertical_line_thickness):
+        self.width = mm(width)
+        self.height = mm(height)
+        self.top_margin = mm(top_margin)
+        self.left_margin = mm(left_margin)
+        self.horizontal_line_count = horizontal_line_count
+        self.horizontal_line_thickness = mm(horizontal_line_thickness)
+        self.vertical_line_thickness = mm(vertical_line_thickness)
 
-    paper = Rectangle(0, 0, width, height, fill="white")
-    d.append(paper)
+    def as_group(self) -> dw.Group:
+        group = dw.Group(id="notebook_paper")
 
-    vertical_line = Rectangle(left_margin, 0, vertical_line_thickness, height, fill="red")
-    d.append(vertical_line)
+        paper = dw.Rectangle(0, 0, self.width, self.height, fill="white")
+        group.append(paper)
 
-    #horizontal lines
-    horizontal_line_reference = Rectangle(0, 0, width, horizontal_line_thickness, fill="blue")
-    spacing = (height - top_margin) / horizontal_line_count
-    for i in range(horizontal_line_count):
-        y = top_margin + (spacing * i)
-        horizontal_line = Use(horizontal_line_reference, 0, y)
-        d.append(horizontal_line)
+        vertical_line = dw.Rectangle(self.left_margin, 0, self.vertical_line_thickness, self.height, fill="red")
+        group.append(vertical_line)
 
-    return d
+        #horizontal lines
+        horizontal_lines = dw.Group(id="horizontal_lines")
+        spacing = (self.height - self.top_margin) / self.horizontal_line_count
+        for i in range(self.horizontal_line_count):
+            y = self.top_margin + (spacing * i)
+            horizontal_line = dw.Rectangle(0, y, self.width, self.horizontal_line_thickness, fill="blue")
+            horizontal_lines.append(horizontal_line)
+        group.append(horizontal_lines)
+
+        return group
+
+    def as_drawsvg_elements(self):
+        return [self.as_group()]
+
