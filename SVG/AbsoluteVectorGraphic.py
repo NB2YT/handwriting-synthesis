@@ -5,6 +5,10 @@ import drawsvg as dw
 from typing import List, Tuple
 from abc import ABC, abstractmethod
 
+from PySide6.QtWidgets import QGraphicsItem, QGraphicsRectItem
+from PySide6.QtGui import QBrush, QColor, QPen
+from PySide6.QtCore import Qt
+
 class AVGElement(ABC):
     @abstractmethod
     def __init__(self, id=""):
@@ -17,6 +21,10 @@ class AVGElement(ABC):
 
     @abstractmethod
     def as_drawsvg_elements(self) -> List[dw.DrawingElement]:
+        pass
+
+    @abstractmethod
+    def as_graphics_items(self) -> List[QGraphicsItem]:
         pass
 
 
@@ -50,6 +58,33 @@ class AVGElementAdapter(AVGElement):
 
     def as_drawsvg_elements(self) -> List[dw.DrawingElement]:
         return self._elements
+    
+    def _dw_element_to_graphics_items(self, element) -> List[QGraphicsItem]:
+        items = []
+
+        if isinstance(element, dw.Group):
+            for child in element.children:
+                items.extend(self._dw_element_to_graphics_items(child))
+        
+        elif isinstance(element, dw.Rectangle):
+            x       = float(element.args["x"])
+            y       = float(element.args["y"])
+            width   = float(element.args["width"])
+            height  = float(element.args["height"])
+            fill    = element.args["fill"]
+
+            item = QGraphicsRectItem(x, y, width, height)
+            item.setBrush(QBrush(QColor(fill)))
+            item.setPen(QPen(Qt.NoPen))
+            items.append(item)
+
+        return items
+
+    def as_graphics_items(self) -> List[QGraphicsItem]:
+        items = []
+        for element in self._elements:
+            items.extend(self._dw_element_to_graphics_items(element))
+        return items
 
 class AbsoluteVectorGraphic():
     def __init__(self):
@@ -62,9 +97,14 @@ class AbsoluteVectorGraphic():
     def as_drawing(self, size: Tuple[int, int]) -> dw.Drawing:
         drawing = dw.Drawing(size[0], size[1])
         for avg_element in self._elements:
-            for dw_element in avg_element.as_drawsvg_elements():
-                drawing.append(dw_element)
+            drawing.extend(avg_element.as_drawsvg_elements())
         return drawing
     
-    def export(self, size: Tuple[int, int]) -> str:
+    def as_graphics_items(self) -> List[QGraphicsItem]:
+        items = []
+        for avg_element in self._elements:
+            items.extend(avg_element.as_graphics_items())
+        return items
+    
+    def as_svg(self, size: Tuple[int, int]) -> str:
         return self.as_drawing(size).as_svg()

@@ -5,6 +5,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QPainter
 
 from GUI.Workers.HandwritingWorker import HandwritingWorker
+from SVG.AbsoluteVectorGraphic import AbsoluteVectorGraphic
 
 class SVGCanvasView(QGraphicsView):
     def __init__(self):
@@ -26,27 +27,26 @@ class SVGCanvasView(QGraphicsView):
         self.setRenderHint(QPainter.Antialiasing)
         self.setRenderHint(QPainter.TextAntialiasing)
 
-        self.svg_item = None
-        self.renderer = None
+        self.svg_items = []
         self.is_first_load = True
         
         self.worker = HandwritingWorker()
         self.worker.finished.connect(self.apply_svg)
         self.worker.start()
+        self.destroyed.connect(self.worker.terminate)
 
-    def apply_svg(self, svg_data):
-        self.renderer = QSvgRenderer(svg_data)
+    def apply_svg(self, avg: AbsoluteVectorGraphic):
+        for item in self.svg_items:
+            self.scene.removeItem(item)
+        self.svg_items.clear()
 
-        if self.svg_item:
-            self.scene.removeItem(self.svg_item)
-
-        self.svg_item = QGraphicsSvgItem()
-        self.svg_item.setSharedRenderer(self.renderer)
-        self.scene.addItem(self.svg_item)
+        for item in avg.as_graphics_items():
+            self.scene.addItem(item)
+            self.svg_items.append(item)
 
         #center when loaded
         if self.is_first_load:
-            self.center_on_svg()
+            self.center_on_svg_items()
             self.is_first_load = False
 
     def wheelEvent(self, event):
@@ -60,6 +60,13 @@ class SVGCanvasView(QGraphicsView):
         else:
             self.scale(zoom_out, zoom_out)
     
-    def center_on_svg(self):
-        rect = self.svg_item.boundingRect()
-        self.centerOn(rect.center())
+    def center_on_svg_items(self):
+        if not self.svg_items:
+            return
+
+        # Unite all item bounding rects into one
+        combined = self.svg_items[0].sceneBoundingRect()
+        for item in self.svg_items[1:]:
+            combined = combined.united(item.sceneBoundingRect())
+        
+        self.centerOn(combined.center())

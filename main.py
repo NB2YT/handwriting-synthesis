@@ -9,7 +9,7 @@ if __name__ == "__main__":
     from SVG.AbsoluteVectorGraphic import AbsoluteVectorGraphic
     avg = AbsoluteVectorGraphic()
     #avg.append(GenerateNotebookPaperAVG(), offset=(100, 300))
-    print(avg.export(size=(1000, 1000)))
+    print(avg.as_svg(size=(1000, 1000)))
 
     app = QApplication(sys.argv)
     viewer = Application.MainWindow()

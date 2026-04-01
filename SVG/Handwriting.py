@@ -1,6 +1,12 @@
 import drawsvg as dw
 from dataclasses import dataclass
 from typing import Literal, List
+import warnings
+import functools
+
+from PySide6.QtWidgets import QGraphicsPathItem, QGraphicsItem
+from PySide6.QtGui import QPainterPath, QColor, QPen, QBrush
+from PySide6.QtCore import Qt
 
 from SVG.AbsoluteVectorGraphic import AVGElement
 
@@ -48,12 +54,27 @@ class HandwritingLine(AVGElement):
     
     def as_drawsvg_elements(self):
         return [self.as_path()]
+    
+    def as_graphics_items(self) -> List[QGraphicsItem]:
+        path = QPainterPath()
+        for movement in self._movements:
+            if movement.method == "M":
+                path.moveTo(movement.x, movement.y)
+            elif movement.method == "L":
+                path.lineTo(movement.x, movement.y)
+        
+        item = QGraphicsPathItem(path)
+        pen = QPen(QColor(self._color), self._width)
+        pen.setCapStyle(Qt.RoundCap)
+        item.setPen(pen)
+        item.setBrush(QBrush(Qt.NoBrush))
+        return [item]
 
 
 class Handwriting(AVGElement):
-    def __init__(self, line_height):
+    def __init__(self):
         self._lines: List[HandwritingLine] = []
-        self._line_height = line_height
+        self._finished = False
 
         #transforms
         self._cumulative_spacing = 0
@@ -68,24 +89,51 @@ class Handwriting(AVGElement):
             str += f"\n  {line}"
         return str
 
+    """generation"""
     def append_line(self, line: HandwritingLine):
         self._lines.append(line)
+    
+    def finish(self):
+        #the handwriting has been fully generated and transformations can now be applied to it.
+        self._finished = True
+    
+    """transforms"""
+    @staticmethod
+    def _transformation(func):
+        #preserve the original function's name and docstring for better debugging.
+        @functools.wraps(func)
 
+        #give a warning if a transformation function is called before the handwriting is finished.
+        def wrapper(self, *args, **kwargs):
+            if not self._finished:
+                warnings.warn("Applying a transformation to a handwriting that has not been finished yet may cause unexpected results.")
+            return func(self, *args, **kwargs)
+        return wrapper
+
+    @_transformation
     def move(self, x, y):
         for line in self._lines:
             line.move(x, y)
 
+    @_transformation
     def set_spacing(self, spacing):
         relative_spacing = spacing - self._cumulative_spacing
         for i, line in enumerate(self._lines):
             line.move(0, relative_spacing * i)
+        self._cumulative_spacing += spacing
 
-    
+    """export"""
     def as_group(self) -> dw.Group:
         group = dw.Group(id="handwriting")
         for line in self._lines:
             group.append(line.as_path())
         return group
     
-    def as_drawsvg_elements(self):
+    def as_drawsvg_elements(self) -> List[dw.DrawingElement]:
         return [self.as_group()]
+    
+    def as_graphics_items(self) -> List[QGraphicsItem]:
+        items = []
+        for line in self._lines:
+            items.extend(line.as_graphics_items())
+        return items

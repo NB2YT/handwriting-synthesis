@@ -9,7 +9,11 @@ from SVG.NotebookPaperGenerator import NotebookPaper
 from SVG.AbsoluteVectorGraphic import AbsoluteVectorGraphic, AVGElementAdapter
 
 class HandwritingWorker(QThread):
-    finished = Signal(QByteArray)
+    finished = Signal(AbsoluteVectorGraphic)
+
+    def __init__(self):
+        super().__init__()
+        self.setObjectName("Handwriting Generator")
 
     def run(self):
         print("loading model")
@@ -34,10 +38,8 @@ class HandwritingWorker(QThread):
             avg.append(AVGElementAdapter([dw.Rectangle(0, 0, 1000, 1000, fill="white")]))
             avg.append(NotebookPaper(width=210, height=297, top_margin=20, left_margin=20, horizontal_line_count=20, horizontal_line_thickness=0.5, vertical_line_thickness=0.5))
             avg.append(handwriting)
-            handwriting.set_spacing(-60)
-            
-            svg_data = QByteArray(avg.export(size=("1000mm", "1000mm")).encode('utf-8'))
+            handwriting.set_spacing(60)
 
             avg.as_drawing(size=("1000mm", "1000mm")).save_svg("test.svg")
 
-            self.finished.emit(svg_data)
+            self.finished.emit(avg)
