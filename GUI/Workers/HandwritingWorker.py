@@ -6,7 +6,7 @@ from PySide6.QtCore import QByteArray, QThread, Signal
 
 from synthesizer_tf2.hand import Hand
 from SVG.NotebookPaperGenerator import NotebookPaper
-from SVG.AbsoluteVectorGraphic import AbsoluteVectorGraphic
+from SVG.AbsoluteVectorGraphic import AbsoluteVectorGraphic, AVGElementAdapter
 
 class HandwritingWorker(QThread):
     finished = Signal(QByteArray)
@@ -23,7 +23,7 @@ class HandwritingWorker(QThread):
         
             lines = textwrap.wrap(text, width=30)
             #max = 2.5 min=0.15
-            bias = .75
+            bias = 2.5
             #0-12
             style = 12
 
@@ -31,8 +31,10 @@ class HandwritingWorker(QThread):
             print(handwriting)
 
             avg = AbsoluteVectorGraphic()
+            avg.append(AVGElementAdapter([dw.Rectangle(0, 0, 1000, 1000, fill="white")]))
             avg.append(NotebookPaper(width=210, height=297, top_margin=20, left_margin=20, horizontal_line_count=20, horizontal_line_thickness=0.5, vertical_line_thickness=0.5))
             avg.append(handwriting)
+            handwriting.set_spacing(-60)
             
             svg_data = QByteArray(avg.export(size=("1000mm", "1000mm")).encode('utf-8'))
 

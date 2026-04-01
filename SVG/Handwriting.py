@@ -51,8 +51,12 @@ class HandwritingLine(AVGElement):
 
 
 class Handwriting(AVGElement):
-    def __init__(self):
+    def __init__(self, line_height):
         self._lines: List[HandwritingLine] = []
+        self._line_height = line_height
+
+        #transforms
+        self._cumulative_spacing = 0
 
     def __len__(self):
         return len(self._lines)
@@ -70,6 +74,12 @@ class Handwriting(AVGElement):
     def move(self, x, y):
         for line in self._lines:
             line.move(x, y)
+
+    def set_spacing(self, spacing):
+        relative_spacing = spacing - self._cumulative_spacing
+        for i, line in enumerate(self._lines):
+            line.move(0, relative_spacing * i)
+
     
     def as_group(self) -> dw.Group:
         group = dw.Group(id="handwriting")
