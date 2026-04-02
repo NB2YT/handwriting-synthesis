@@ -7,9 +7,10 @@ from PySide6.QtCore import QByteArray, QThread, Signal
 from synthesizer_tf2.hand import Hand
 from SVG.NotebookPaperGenerator import NotebookPaper
 from SVG.AbsoluteVectorGraphic import AbsoluteVectorGraphic, AVGElementAdapter
+from SVG.Handwriting import Handwriting
 
 class HandwritingWorker(QThread):
-    finished = Signal(AbsoluteVectorGraphic)
+    finished = Signal(AbsoluteVectorGraphic, Handwriting)
 
     def __init__(self):
         super().__init__()
@@ -42,4 +43,4 @@ class HandwritingWorker(QThread):
 
             avg.as_drawing(size=("1000mm", "1000mm")).save_svg("test.svg")
 
-            self.finished.emit(avg)
+            self.finished.emit(avg, handwriting)

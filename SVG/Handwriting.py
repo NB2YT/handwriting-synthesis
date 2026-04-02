@@ -78,18 +78,18 @@ class Handwriting(AVGElement):
 
         #transforms
         self._cumulative_spacing = 0
+        self._cumulative_scale = 1
 
     def __len__(self):
         return len(self._lines)
     
     def __repr__(self):
-        str = ""
-        str += f"Handwriting with {len(self)} lines:"
+        str = f"Handwriting with {len(self)} lines:"
         for line in self._lines:
             str += f"\n  {line}"
         return str
 
-    """generation"""
+    # --- Generation ---
     def append_line(self, line: HandwritingLine):
         self._lines.append(line)
     
@@ -97,7 +97,7 @@ class Handwriting(AVGElement):
         #the handwriting has been fully generated and transformations can now be applied to it.
         self._finished = True
     
-    """transforms"""
+    # --- Transforms ---
     @staticmethod
     def _transformation(func):
         #preserve the original function's name and docstring for better debugging.
@@ -120,9 +120,18 @@ class Handwriting(AVGElement):
         relative_spacing = spacing - self._cumulative_spacing
         for i, line in enumerate(self._lines):
             line.move(0, relative_spacing * i)
-        self._cumulative_spacing += spacing
+        self._cumulative_spacing += relative_spacing
 
-    """export"""
+    @_transformation
+    def set_scale(self, scale):
+        relative_scale = scale / self._cumulative_scale
+        for line in self._lines:
+            for movement in line._movements:
+                movement.x *= relative_scale
+                movement.y *= relative_scale
+        self._cumulative_scale = scale
+
+    # --- Export ---
     def as_group(self) -> dw.Group:
         group = dw.Group(id="handwriting")
         for line in self._lines:

@@ -1,20 +1,19 @@
 from PySide6.QtWidgets import QGraphicsView, QGraphicsScene
-from PySide6.QtSvg import QSvgRenderer
-from PySide6.QtSvgWidgets import QGraphicsSvgItem
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, Slot
 from PySide6.QtGui import QPainter
 
 from GUI.Workers.HandwritingWorker import HandwritingWorker
 from SVG.AbsoluteVectorGraphic import AbsoluteVectorGraphic
+from SVG.Handwriting import Handwriting
 
 class SVGCanvasView(QGraphicsView):
     def __init__(self):
         super().__init__()
-        self.scene = QGraphicsScene(self)
-        self.setScene(self.scene)
+        self._scene = QGraphicsScene(self)
+        self.setScene(self._scene)
 
         #allow panning
-        self.scene.setSceneRect(-5000, -5000, 10000, 10000)
+        self._scene.setSceneRect(-5000, -5000, 10000, 10000)
         self.centerOn(0, 0)
         self.setTransformationAnchor(QGraphicsView.AnchorUnderMouse)
         self.setResizeAnchor(QGraphicsView.AnchorUnderMouse)
@@ -27,27 +26,56 @@ class SVGCanvasView(QGraphicsView):
         self.setRenderHint(QPainter.Antialiasing)
         self.setRenderHint(QPainter.TextAntialiasing)
 
-        self.svg_items = []
-        self.is_first_load = True
+        self.setViewportUpdateMode(QGraphicsView.BoundingRectViewportUpdate)
+
+        self._svg_items = []
+        self._handwriting_line_spacing = 60
+        self._handwriting_scale = 1.0
+        self._current_avg: AbsoluteVectorGraphic = None
+        self._current_handwriting: Handwriting = None
+        self._is_first_load = True
         
-        self.worker = HandwritingWorker()
-        self.worker.finished.connect(self.apply_svg)
-        self.worker.start()
-        self.destroyed.connect(self.worker.terminate)
+        self._worker = HandwritingWorker()
+        self._worker.finished.connect(self.apply_svg)
+        self._worker.start()
+        self.destroyed.connect(self._worker.terminate)
 
-    def apply_svg(self, avg: AbsoluteVectorGraphic):
-        for item in self.svg_items:
-            self.scene.removeItem(item)
-        self.svg_items.clear()
-
-        for item in avg.as_graphics_items():
-            self.scene.addItem(item)
-            self.svg_items.append(item)
+    @Slot(AbsoluteVectorGraphic, Handwriting)
+    def apply_svg(self, avg: AbsoluteVectorGraphic, handwriting: Handwriting):
+        self._current_avg = avg
+        self._current_handwriting = handwriting
+        self._current_handwriting.set_spacing(self._handwriting_line_spacing)
+        self._current_handwriting.set_scale(self._handwriting_scale)
+        self._redraw()
 
         #center when loaded
-        if self.is_first_load:
+        if self._is_first_load:
             self.center_on_svg_items()
-            self.is_first_load = False
+            self._is_first_load = False
+
+    @Slot(int)
+    def set_line_spacing(self, value: int):
+        self._handwriting_line_spacing = value
+        if self._current_avg:
+            self._current_handwriting.set_spacing(value)
+            self._redraw()
+
+    @Slot(float)
+    def set_handwriting_scale(self, value: float):
+        self._handwriting_scale = value
+        if self._current_avg:
+            self._current_handwriting.set_scale(value)
+            self._redraw()
+
+    def _redraw(self):
+        for item in self._svg_items:
+            self._scene.removeItem(item)
+        self._svg_items.clear()
+
+        for item in self._current_avg.as_graphics_items():
+            self._scene.addItem(item)
+            self._svg_items.append(item)
+
 
     def wheelEvent(self, event):
         # Zoom Factor
@@ -61,12 +89,4 @@ class SVGCanvasView(QGraphicsView):
             self.scale(zoom_out, zoom_out)
     
     def center_on_svg_items(self):
-        if not self.svg_items:
-            return
-
-        # Unite all item bounding rects into one
-        combined = self.svg_items[0].sceneBoundingRect()
-        for item in self.svg_items[1:]:
-            combined = combined.united(item.sceneBoundingRect())
-        
-        self.centerOn(combined.center())
+        self.centerOn(self._scene.itemsBoundingRect().center())
