@@ -70,6 +70,10 @@ class HandwritingLine(AVGElement):
         item.setBrush(QBrush(Qt.NoBrush))
         return [item]
 
+@dataclass
+class HandwritingConfig:
+    scale: float
+    spacing: float
 
 class Handwriting(AVGElement):
     def __init__(self):
@@ -130,6 +134,10 @@ class Handwriting(AVGElement):
                 movement.x *= relative_scale
                 movement.y *= relative_scale
         self._cumulative_scale = scale
+
+    def apply_config(self, config: HandwritingConfig):
+        self.set_scale(config.scale)
+        self.set_spacing(config.spacing)
 
     # --- Export ---
     def as_group(self) -> dw.Group:

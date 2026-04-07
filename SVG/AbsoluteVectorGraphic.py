@@ -94,6 +94,10 @@ class AbsoluteVectorGraphic():
         element.move(*offset)
         self._elements.append(element)
 
+    def prepend(self, element: AVGElement, offset=(0, 0)):
+        element.move(*offset)
+        self._elements.insert(0, element)
+
     def as_drawing(self, size: Tuple[int, int]) -> dw.Drawing:
         drawing = dw.Drawing(size[0], size[1])
         for avg_element in self._elements:

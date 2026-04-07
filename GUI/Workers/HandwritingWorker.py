@@ -10,7 +10,7 @@ from SVG.AbsoluteVectorGraphic import AbsoluteVectorGraphic, AVGElementAdapter
 from SVG.Handwriting import Handwriting
 
 class HandwritingWorker(QThread):
-    finished = Signal(AbsoluteVectorGraphic, Handwriting)
+    finished = Signal(Handwriting)
 
     def __init__(self):
         super().__init__()
@@ -31,16 +31,22 @@ class HandwritingWorker(QThread):
             bias = 2.5
             #0-12
             style = 12
+            stroke_width = 1
 
-            handwriting = self.hand.write(lines=lines, biases=[bias for _ in lines], styles=[style for _ in lines])
+            handwriting = self.hand.write(
+                lines=lines, 
+                biases=[bias]*len(lines), 
+                styles=[style]*len(lines), 
+                stroke_widths=[stroke_width]*len(lines)
+            )
             print(handwriting)
 
-            avg = AbsoluteVectorGraphic()
-            avg.append(AVGElementAdapter([dw.Rectangle(0, 0, 1000, 1000, fill="white")]))
-            avg.append(NotebookPaper(width=210, height=297, top_margin=20, left_margin=20, horizontal_line_count=20, horizontal_line_thickness=0.5, vertical_line_thickness=0.5))
-            avg.append(handwriting)
+            #avg = AbsoluteVectorGraphic()
+            #avg.append(AVGElementAdapter([dw.Rectangle(0, 0, 1000, 1000, fill="white")]))
+            #avg.append(NotebookPaper(width=210, height=297, top_margin=20, left_margin=20, horizontal_line_count=20, horizontal_line_thickness=0.5, vertical_line_thickness=0.5))
+            #avg.append(handwriting)
             handwriting.set_spacing(60)
 
-            avg.as_drawing(size=("1000mm", "1000mm")).save_svg("test.svg")
+            #avg.as_drawing(size=("1000mm", "1000mm")).save_svg("test.svg")
 
-            self.finished.emit(avg, handwriting)
+            self.finished.emit(handwriting)
