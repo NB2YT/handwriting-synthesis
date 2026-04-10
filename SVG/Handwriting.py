@@ -71,9 +71,17 @@ class HandwritingLine(AVGElement):
         return [item]
 
 @dataclass
-class HandwritingConfig:
+class HandwritingTransformConfig:
     scale: float
     spacing: float
+
+#TODO: add pydantic validation
+@dataclass
+class HandwritingGenerationConfig:
+    text: str
+    line_width: int
+    bias: float #0.15-2.5
+    style: int #0-12
 
 class Handwriting(AVGElement):
     def __init__(self):
@@ -135,7 +143,7 @@ class Handwriting(AVGElement):
                 movement.y *= relative_scale
         self._cumulative_scale = scale
 
-    def apply_config(self, config: HandwritingConfig):
+    def apply_config(self, config: HandwritingTransformConfig):
         self.set_scale(config.scale)
         self.set_spacing(config.spacing)
 

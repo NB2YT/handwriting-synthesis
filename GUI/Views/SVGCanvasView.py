@@ -4,7 +4,7 @@ from PySide6.QtGui import QPainter
 
 from GUI.Workers.HandwritingWorker import HandwritingWorker
 from SVG.AbsoluteVectorGraphic import AbsoluteVectorGraphic
-from SVG.Handwriting import Handwriting, HandwritingConfig
+from SVG.Handwriting import Handwriting, HandwritingTransformConfig, HandwritingGenerationConfig
 from SVG.NotebookPaperGenerator import NotebookPaper
 
 class SVGCanvasView(QGraphicsView):
@@ -35,7 +35,7 @@ class SVGCanvasView(QGraphicsView):
         self._handwriting_scale = 1.0
         self._current_notebook_paper: NotebookPaper = None
         self._current_handwriting: Handwriting = None
-        self._handwriting_config: HandwritingConfig = None
+        self._handwriting_config: HandwritingTransformConfig = None
         self._is_first_load = True
         
         self._worker = HandwritingWorker()
@@ -47,8 +47,6 @@ class SVGCanvasView(QGraphicsView):
     def apply_handwriting(self, handwriting: Handwriting):
         self._current_handwriting = handwriting
         handwriting.apply_config(self._handwriting_config)
-        #self._current_handwriting.set_spacing(self._handwriting_line_spacing)
-        #self._current_handwriting.set_scale(self._handwriting_scale)
         self._redraw()
 
         #center when loaded
@@ -56,25 +54,17 @@ class SVGCanvasView(QGraphicsView):
             self.center_on_svg_items()
             self._is_first_load = False
 
-    @Slot(int)
-    def set_line_spacing(self, value: int):
-        self._handwriting_line_spacing = value
-        self._current_handwriting.set_spacing(value)
-        self._redraw()
-
-    @Slot(float)
-    def set_handwriting_scale(self, value: float):
-        self._handwriting_scale = value
-        self._current_handwriting.set_scale(value)
-        self._redraw()
+    @Slot(HandwritingGenerationConfig)
+    def generate_handwriting(self, config: HandwritingGenerationConfig):
+        self._worker.generate(config)
 
     @Slot(NotebookPaper)
     def set_notebook_paper(self, notebook_paper: NotebookPaper):
         self._current_notebook_paper = notebook_paper
         self._redraw()
 
-    @Slot(HandwritingConfig)
-    def set_handwriting_config(self, config: HandwritingConfig):
+    @Slot(HandwritingTransformConfig)
+    def set_handwriting_config(self, config: HandwritingTransformConfig):
         self._handwriting_config = config
         if self._current_handwriting:
             self._current_handwriting.apply_config(config)
@@ -94,7 +84,6 @@ class SVGCanvasView(QGraphicsView):
         for item in self._avg.as_graphics_items():
             self._scene.addItem(item)
             self._svg_items.append(item)
-
 
     def wheelEvent(self, event):
         # Zoom Factor

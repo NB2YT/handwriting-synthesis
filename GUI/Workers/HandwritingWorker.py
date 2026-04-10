@@ -1,13 +1,9 @@
 import textwrap
-import drawsvg as dw
-from typing import List
 
-from PySide6.QtCore import QByteArray, QThread, Signal
+from PySide6.QtCore import QThread, Signal
 
 from synthesizer_tf2.hand import Hand
-from SVG.NotebookPaperGenerator import NotebookPaper
-from SVG.AbsoluteVectorGraphic import AbsoluteVectorGraphic, AVGElementAdapter
-from SVG.Handwriting import Handwriting
+from SVG.Handwriting import Handwriting, HandwritingGenerationConfig
 
 class HandwritingWorker(QThread):
     finished = Signal(Handwriting)
@@ -21,6 +17,11 @@ class HandwritingWorker(QThread):
         self.hand = Hand()
         print("model loaded")
 
+    #def terminate(self):
+    #    self.hand = None
+    #    return super().terminate()
+
+    def cont(self):
         while True:
             print("worker generating")
 
@@ -50,3 +51,15 @@ class HandwritingWorker(QThread):
             #avg.as_drawing(size=("1000mm", "1000mm")).save_svg("test.svg")
 
             self.finished.emit(handwriting)
+    
+    def generate(self, config: HandwritingGenerationConfig):
+        print("worker generating")
+
+        lines = textwrap.wrap(config.text, width=config.line_width)
+        handwriting = self.hand.write(
+            lines=lines,
+            biases=[config.bias]*len(lines),
+            styles=[config.style]*len(lines)
+        )
+        
+        self.finished.emit(handwriting)

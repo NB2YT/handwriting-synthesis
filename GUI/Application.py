@@ -2,11 +2,9 @@ from PySide6.QtWidgets import QMainWindow, QWidget, QHBoxLayout, QVBoxLayout, QT
 from PySide6.QtCore import Qt
 
 from GUI.Views.SVGCanvasView import SVGCanvasView
-from GUI.Widgets.SpacingControl import SpacingControl
-from GUI.Widgets.ScaleControl import ScaleControl
-
 from GUI.Widgets.NotebookPaperControls import NotebookPaperControls
 from GUI.Widgets.HandwritingControls import HandwritingControls
+from GUI.Widgets.HandwritingInput import HandwritingInput
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -30,26 +28,11 @@ class MainWindow(QMainWindow):
         tabs.setFixedWidth(220)
         root_layout.addWidget(tabs)
 
-        '''
-        #handwriting tab
-        handwriting_tab = QWidget()
-        handwriting_layout = QVBoxLayout(handwriting_tab)
-        handwriting_layout.setAlignment(Qt.AlignTop)
-        handwriting_layout.setContentsMargins(12, 12, 12, 12)
-        handwriting_layout.setSpacing(12)
-
-        #handwriting controls
-        self.spacing_control = SpacingControl(default=60)
-        self.spacing_control.valueChanged.connect(self.canvas.set_line_spacing)
-        handwriting_layout.addWidget(self.spacing_control)
-
-        self.scale_control = ScaleControl(default=1.0)
-        self.scale_control.valueChanged.connect(self.canvas.set_handwriting_scale)
-        handwriting_layout.addWidget(self.scale_control)
-
-        tabs.addTab(handwriting_tab, "Handwriting")
-        '''
-
+        #Text tab
+        self.handwriting_input = HandwritingInput()
+        self.handwriting_input.valueChanged.connect(self.canvas.generate_handwriting)
+        tabs.addTab(self.handwriting_input, "Text")
+        
         #handwriting tab
         self.handwriting_controls = HandwritingControls()
         self.handwriting_controls.valueChanged.connect(self.canvas.set_handwriting_config)

@@ -1,12 +1,12 @@
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QFormLayout, QSpinBox, QDoubleSpinBox
+from PySide6.QtWidgets import QWidget, QVBoxLayout
 from PySide6.QtCore import Signal, Qt
 
-from SVG.Handwriting import HandwritingConfig
+from SVG.Handwriting import HandwritingTransformConfig
 
 from GUI.Widgets.Templates.LabeledSliderSpinBox import LabeledSliderDoubleSpinBox
 
 class HandwritingControls(QWidget):
-    valueChanged = Signal(HandwritingConfig)
+    valueChanged = Signal(HandwritingTransformConfig)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -40,7 +40,7 @@ class HandwritingControls(QWidget):
         self.valueChanged.emit(self.value())
 
     def value(self):
-        return HandwritingConfig(
+        return HandwritingTransformConfig(
             spacing=self._spacing_control.value(),
             scale=self._scale_control.value()
         )
