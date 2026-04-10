@@ -70,6 +70,12 @@ class SVGCanvasView(QGraphicsView):
             self._current_handwriting.apply_config(config)
         self._redraw()
 
+    @Slot(int, int)
+    def move_handwriting(self, x: int, y: int):
+        if self._current_handwriting:
+            self._current_handwriting.move(x, y)
+        self._redraw()
+
     def _redraw(self):
         self._avg = AbsoluteVectorGraphic()
         if self._current_notebook_paper:

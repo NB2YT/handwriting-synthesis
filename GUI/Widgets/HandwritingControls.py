@@ -35,6 +35,26 @@ class HandwritingControls(QWidget):
         )
         layout.addWidget(self._spacing_control)
         self._spacing_control.valueChanged.connect(self._emit)
+
+        self._x_control = LabeledSliderDoubleSpinBox(
+            default=0,
+            minimum=-100,
+            maximum=100,
+            step=1,
+            label="X coord"
+        )
+        layout.addWidget(self._x_control)
+        self._x_control.valueChanged.connect(self._emit)
+
+        self._y_control = LabeledSliderDoubleSpinBox(
+            default=0,
+            minimum=-100,
+            maximum=100,
+            step=1,
+            label="Y coord"
+        )
+        layout.addWidget(self._y_control)
+        self._y_control.valueChanged.connect(self._emit)
     
     def _emit(self):
         self.valueChanged.emit(self.value())
@@ -42,5 +62,7 @@ class HandwritingControls(QWidget):
     def value(self):
         return HandwritingTransformConfig(
             spacing=self._spacing_control.value(),
-            scale=self._scale_control.value()
+            scale=self._scale_control.value(),
+            x_offset=self._x_control.value(),
+            y_offset=self._y_control.value()
         )

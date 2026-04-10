@@ -74,6 +74,8 @@ class HandwritingLine(AVGElement):
 class HandwritingTransformConfig:
     scale: float
     spacing: float
+    x_offset: int
+    y_offset: int
 
 #TODO: add pydantic validation
 @dataclass
@@ -89,8 +91,10 @@ class Handwriting(AVGElement):
         self._finished = False
 
         #transforms
-        self._cumulative_spacing = 0
-        self._cumulative_scale = 1
+        self._current_spacing = 0
+        self._current_scale = 1
+        self._current_x = 0
+        self._current_y = 0
 
     def __len__(self):
         return len(self._lines)
@@ -124,28 +128,37 @@ class Handwriting(AVGElement):
 
     @_transformation
     def move(self, x, y):
+        self._current_x += x
+        self._current_y += y
         for line in self._lines:
             line.move(x, y)
 
     @_transformation
+    def set_position(self, x, y):
+        relative_x = x - self._current_x
+        relative_y = y - self._current_y
+        self.move(relative_x, relative_y)
+
+    @_transformation
     def set_spacing(self, spacing):
-        relative_spacing = spacing - self._cumulative_spacing
+        relative_spacing = spacing - self._current_spacing
         for i, line in enumerate(self._lines):
             line.move(0, relative_spacing * i)
-        self._cumulative_spacing += relative_spacing
+        self._current_spacing += relative_spacing
 
     @_transformation
     def set_scale(self, scale):
-        relative_scale = scale / self._cumulative_scale
+        relative_scale = scale / self._current_scale
         for line in self._lines:
             for movement in line._movements:
                 movement.x *= relative_scale
                 movement.y *= relative_scale
-        self._cumulative_scale = scale
+        self._current_scale = scale
 
     def apply_config(self, config: HandwritingTransformConfig):
         self.set_scale(config.scale)
         self.set_spacing(config.spacing)
+        self.set_position(config.x_offset, config.y_offset)
 
     # --- Export ---
     def as_group(self) -> dw.Group:
