@@ -2,7 +2,7 @@ from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QPlainTextEdit,
     QPushButton, QLabel, QSizePolicy
 )
-from PySide6.QtCore import Signal, Qt
+from PySide6.QtCore import Signal, Qt, Slot
 
 from SVG.Handwriting import HandwritingGenerationConfig
 from GUI.Widgets.Templates.LabeledSliderSpinBox import LabeledSliderDoubleSpinBox, LabeledSliderSpinBox
@@ -84,3 +84,8 @@ class HandwritingInput(QWidget):
             bias=self._bias_control.value(),
             style=self._style_control.value()
         )
+    
+    @Slot(bool)
+    def set_processing(self, is_processing: bool):
+        self._generate_btn.setEnabled(not is_processing)
+        self._generate_btn.setText("Generating" if is_processing else "Generate")

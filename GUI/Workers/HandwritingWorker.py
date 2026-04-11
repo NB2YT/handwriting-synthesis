@@ -1,65 +1,45 @@
 import textwrap
+from queue import Queue
 
-from PySide6.QtCore import QThread, Signal
+from PySide6.QtCore import QThread, Signal, Slot
 
 from synthesizer_tf2.hand import Hand
 from SVG.Handwriting import Handwriting, HandwritingGenerationConfig
 
 class HandwritingWorker(QThread):
     finished = Signal(Handwriting)
+    processing = Signal(bool)
 
     def __init__(self):
         super().__init__()
         self.setObjectName("Handwriting Generator")
+        self._queue = Queue()
 
     def run(self):
         print("loading model")
         self.hand = Hand()
         print("model loaded")
 
-    #def terminate(self):
-    #    self.hand = None
-    #    return super().terminate()
-
-    def cont(self):
         while True:
+            config: HandwritingGenerationConfig = self._queue.get()
+            if config is None:
+                break
+
             print("worker generating")
-
-            text = "Canada is considered one of the best countries in the world to live in. First, Canada has an excellent health care system, allowing all citizens access to medical services at a reasonable price. Second, Canada has a high standard of education, with students taught by well-trained teachers who encourage university studies. Finally, Canada's cities are clean and efficiently managed, offering many parks and ample space for residents. As a result, Canada is a highly desirable place to live."
-        
-            lines = textwrap.wrap(text, width=30)
-            #max = 2.5 min=0.15
-            bias = 2.5
-            #0-12
-            style = 12
-            stroke_width = 1
-
+            self.processing.emit(True)
+            lines = textwrap.wrap(config.text, width=config.line_width)
             handwriting = self.hand.write(
-                lines=lines, 
-                biases=[bias]*len(lines), 
-                styles=[style]*len(lines), 
-                stroke_widths=[stroke_width]*len(lines)
+                lines=lines,
+                biases=[config.bias] * len(lines),
+                styles=[config.style] * len(lines)
             )
-            print(handwriting)
-
-            #avg = AbsoluteVectorGraphic()
-            #avg.append(AVGElementAdapter([dw.Rectangle(0, 0, 1000, 1000, fill="white")]))
-            #avg.append(NotebookPaper(width=210, height=297, top_margin=20, left_margin=20, horizontal_line_count=20, horizontal_line_thickness=0.5, vertical_line_thickness=0.5))
-            #avg.append(handwriting)
-            handwriting.set_spacing(60)
-
-            #avg.as_drawing(size=("1000mm", "1000mm")).save_svg("test.svg")
-
+            self.processing.emit(False)
             self.finished.emit(handwriting)
-    
-    def generate(self, config: HandwritingGenerationConfig):
-        print("worker generating")
 
-        lines = textwrap.wrap(config.text, width=config.line_width)
-        handwriting = self.hand.write(
-            lines=lines,
-            biases=[config.bias]*len(lines),
-            styles=[config.style]*len(lines)
-        )
-        
-        self.finished.emit(handwriting)
+    @Slot(HandwritingGenerationConfig)
+    def generate(self, config: HandwritingGenerationConfig):
+        self._queue.put(config)
+    
+    def stop(self):
+        self._queue.put(None)
+        self.wait()

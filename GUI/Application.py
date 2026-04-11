@@ -5,6 +5,7 @@ from GUI.Views.SVGCanvasView import SVGCanvasView
 from GUI.Widgets.NotebookPaperControls import NotebookPaperControls
 from GUI.Widgets.HandwritingControls import HandwritingControls
 from GUI.Widgets.HandwritingInput import HandwritingInput
+from GUI.Workers.HandwritingWorker import HandwritingWorker
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -19,9 +20,14 @@ class MainWindow(QMainWindow):
         root_layout.setContentsMargins(0, 0, 0, 0)
         root_layout.setSpacing(0)
 
+        #handwriting worker setup
+        self.handwriting_worker = HandwritingWorker()
+        self.handwriting_worker.start()
+
         #canvas
         self.canvas = SVGCanvasView()
         root_layout.addWidget(self.canvas, stretch=1)
+        self.handwriting_worker.finished.connect(self.canvas.apply_handwriting)
 
         #sidebar
         tabs = QTabWidget()
@@ -30,7 +36,8 @@ class MainWindow(QMainWindow):
 
         #Text tab
         self.handwriting_input = HandwritingInput()
-        self.handwriting_input.valueChanged.connect(self.canvas.generate_handwriting)
+        self.handwriting_input.valueChanged.connect(self.handwriting_worker.generate)
+        self.handwriting_worker.processing.connect(self.handwriting_input.set_processing)
         tabs.addTab(self.handwriting_input, "Text")
         
         #handwriting tab
@@ -44,3 +51,7 @@ class MainWindow(QMainWindow):
         self.paper_controls.valueChanged.connect(self.canvas.set_notebook_paper)
         self.canvas.set_notebook_paper(self.paper_controls.value())
         tabs.addTab(self.paper_controls, "Paper")
+    
+    def closeEvent(self, event):
+        self.handwriting_worker.stop()
+        super().closeEvent(event)

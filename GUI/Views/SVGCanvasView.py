@@ -2,9 +2,8 @@ from PySide6.QtWidgets import QGraphicsView, QGraphicsScene
 from PySide6.QtCore import Qt, Slot
 from PySide6.QtGui import QPainter
 
-from GUI.Workers.HandwritingWorker import HandwritingWorker
 from SVG.AbsoluteVectorGraphic import AbsoluteVectorGraphic
-from SVG.Handwriting import Handwriting, HandwritingTransformConfig, HandwritingGenerationConfig
+from SVG.Handwriting import Handwriting, HandwritingTransformConfig
 from SVG.NotebookPaperGenerator import NotebookPaper
 
 class SVGCanvasView(QGraphicsView):
@@ -37,11 +36,6 @@ class SVGCanvasView(QGraphicsView):
         self._current_handwriting: Handwriting = None
         self._handwriting_config: HandwritingTransformConfig = None
         self._is_first_load = True
-        
-        self._worker = HandwritingWorker()
-        self._worker.finished.connect(self.apply_handwriting)
-        self._worker.start()
-        self.destroyed.connect(self._worker.terminate)
 
     @Slot(Handwriting)
     def apply_handwriting(self, handwriting: Handwriting):
@@ -53,10 +47,6 @@ class SVGCanvasView(QGraphicsView):
         if self._is_first_load:
             self.center_on_svg_items()
             self._is_first_load = False
-
-    @Slot(HandwritingGenerationConfig)
-    def generate_handwriting(self, config: HandwritingGenerationConfig):
-        self._worker.generate(config)
 
     @Slot(NotebookPaper)
     def set_notebook_paper(self, notebook_paper: NotebookPaper):

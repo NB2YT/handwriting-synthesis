@@ -149,10 +149,18 @@ class Handwriting(AVGElement):
     @_transformation
     def set_scale(self, scale):
         relative_scale = scale / self._current_scale
+
+        #find center of handwriting
+        all_x = [movement.x for line in self._lines for movement in line._movements]
+        all_y = [movement.y for line in self._lines for movement in line._movements]
+        center_x = (min(all_x) + max(all_x)) / 2
+        center_y = (min(all_y) + max(all_y)) / 2
+
         for line in self._lines:
             for movement in line._movements:
-                movement.x *= relative_scale
-                movement.y *= relative_scale
+                movement.x = center_x + (movement.x - center_x) * relative_scale
+                movement.y = center_y + (movement.y - center_y) * relative_scale
+        
         self._current_scale = scale
 
     def apply_config(self, config: HandwritingTransformConfig):
