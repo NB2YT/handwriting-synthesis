@@ -1,10 +1,12 @@
 from PySide6.QtWidgets import QGraphicsView, QGraphicsScene
 from PySide6.QtCore import Qt, Slot
-from PySide6.QtGui import QPainter
+from PySide6.QtGui import QPainter, QKeyEvent, QMouseEvent, QScrollEvent
 
 from SVG.AbsoluteVectorGraphic import AbsoluteVectorGraphic
 from SVG.Handwriting import Handwriting, HandwritingTransformConfig
 from SVG.NotebookPaperGenerator import NotebookPaper
+from SVG.Transform.TransformHandles import TransformHandles
+from SVG.Transform.HandwritingGroup import HandwritingGroup
 
 class SVGCanvasView(QGraphicsView):
     def __init__(self):
@@ -20,9 +22,9 @@ class SVGCanvasView(QGraphicsView):
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 
-        # Enable dragging/panning with the left mouse button
-        self.setDragMode(QGraphicsView.ScrollHandDrag)
-        # Smooth out the rendering
+        #default to select mode — pan is middle mouse or space+drag
+        self.setDragMode(QGraphicsView.RubberBandDrag)
+        #Smooth out the rendering
         self.setRenderHint(QPainter.Antialiasing)
         self.setRenderHint(QPainter.TextAntialiasing)
 
@@ -36,6 +38,10 @@ class SVGCanvasView(QGraphicsView):
         self._current_handwriting: Handwriting = None
         self._handwriting_config: HandwritingTransformConfig = None
         self._is_first_load = True
+        self._handles: TransformHandles = None
+        self._space_held = False
+
+        self._scene.selectionChanged.connect(self._on_selection_changed)
 
     @Slot(Handwriting)
     def apply_handwriting(self, handwriting: Handwriting):
@@ -81,7 +87,58 @@ class SVGCanvasView(QGraphicsView):
             self._scene.addItem(item)
             self._svg_items.append(item)
 
-    def wheelEvent(self, event):
+    def _on_selection_changed(self):
+        #remove old handles
+        if self._handles:
+            self._scene.removeItem(self._handles)
+            self._handles = None
+
+        selected = self._scene.selectedItems()
+        #find the HandwritingGroup among selected items
+        groups = [i for i in selected if isinstance(i, HandwritingGroup)]
+        if groups:
+            self._handles = TransformHandles(groups[0])
+            self._scene.addItem(self._handles)
+    
+    def keyPressEvent(self, event: QKeyEvent):
+        if event.key() == Qt.Key_Space and not event.isAutoRepeat():
+            self._space_held = True
+            self.setDragMode(QGraphicsView.ScrollHandDrag)
+            self.viewport().setCursor(Qt.OpenHandCursor)
+        super().keyPressEvent(event)
+
+    def keyReleaseEvent(self, event: QKeyEvent):
+        if event.key() == Qt.Key_Space and not event.isAutoRepeat():
+            self._space_held = False
+            self.setDragMode(QGraphicsView.RubberBandDrag)
+            self.viewport().setCursor(Qt.ArrowCursor)
+        super().keyReleaseEvent(event)
+
+    def mousePressEvent(self, event: QMouseEvent):
+        if event.button() == Qt.RightButton:
+            self.setDragMode(QGraphicsView.ScrollHandDrag)
+            #feed Qt a fake left press to activate hand drag
+            fake = QMouseEvent(
+                event.type(), event.position(),
+                Qt.LeftButton, Qt.LeftButton, event.modifiers()
+            )
+            super().mousePressEvent(fake)
+        else:
+            super().mousePressEvent(event)
+
+    def mouseReleaseEvent(self, event: QMouseEvent):
+        if event.button() == Qt.RightButton:
+            if not self._space_held:
+                self.setDragMode(QGraphicsView.RubberBandDrag)
+            fake = QMouseEvent(
+                event.type(), event.position(),
+                Qt.LeftButton, Qt.LeftButton, event.modifiers()
+            )
+            super().mouseReleaseEvent(fake)
+        else:
+            super().mouseReleaseEvent(event)
+
+    def wheelEvent(self, event: QScrollEvent):
         # Zoom Factor
         zoom_in = 1.25
         zoom_out = 1 / zoom_in

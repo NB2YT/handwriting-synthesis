@@ -9,6 +9,7 @@ from PySide6.QtGui import QPainterPath, QColor, QPen, QBrush
 from PySide6.QtCore import Qt
 
 from SVG.AbsoluteVectorGraphic import AVGElement
+from SVG.Transform.HandwritingGroup import HandwritingGroup
 
 @dataclass
 class HandwritingPathMovement:
@@ -179,7 +180,8 @@ class Handwriting(AVGElement):
         return [self.as_group()]
     
     def as_graphics_items(self) -> List[QGraphicsItem]:
-        items = []
+        group = HandwritingGroup(self)
         for line in self._lines:
-            items.extend(line.as_graphics_items())
-        return items
+            for item in line.as_graphics_items():
+                group.addToGroup(item)
+        return [group]
