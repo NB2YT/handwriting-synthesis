@@ -4,7 +4,7 @@
 4. make the style selector show sample handwriting
 5. add auto positioning
 6. add better notebook paper demension defaults
-7. add svg export
+7. add svg export ✅ (clean up export code)
 8. fix millimeter scaling
 9. address new lines in text input
 10. add pydantic input validation

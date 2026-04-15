@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QMainWindow, QWidget, QHBoxLayout, QVBoxLayout, QTabWidget
+from PySide6.QtWidgets import QMainWindow, QWidget, QHBoxLayout, QVBoxLayout, QTabWidget, QFileDialog
 from PySide6.QtCore import Qt
 
 from GUI.Views.SVGCanvasView import SVGCanvasView
@@ -51,6 +51,31 @@ class MainWindow(QMainWindow):
         self.paper_controls.valueChanged.connect(self.canvas.set_notebook_paper)
         self.canvas.set_notebook_paper(self.paper_controls.value())
         tabs.addTab(self.paper_controls, "Paper")
+
+        #export svg
+        menu_bar = self.menuBar()
+        file_menu = menu_bar.addMenu("File")
+
+        export_action = file_menu.addAction("Export SVG")
+        export_action.setShortcut("Ctrl+E")
+        export_action.triggered.connect(self._on_export)
+
+    #TODO: make this better
+    def _on_export(self):
+        if self.canvas._current_notebook_paper is None:
+            return
+        path, _ = QFileDialog.getSaveFileName(self, "Export SVG", "", "SVG Files (*.svg)")
+        if path:
+            if not path.endswith(".svg"):
+                path += ".svg"
+            svg = self.canvas._avg.as_drawing(
+                size=(
+                        self.canvas._current_notebook_paper.width,
+                        self.canvas._current_notebook_paper.height,
+                    )
+            ).as_svg()
+            with open(path, "w", encoding="utf-8") as f:
+                f.write(svg)
     
     def closeEvent(self, event):
         self.handwriting_worker.stop()

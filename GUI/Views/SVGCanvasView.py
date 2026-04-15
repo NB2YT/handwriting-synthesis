@@ -42,7 +42,7 @@ class SVGCanvasView(QGraphicsView):
         self._space_held = False
 
         self._scene.selectionChanged.connect(self._on_selection_changed)
-
+        
     @Slot(Handwriting)
     def apply_handwriting(self, handwriting: Handwriting):
         self._current_handwriting = handwriting
