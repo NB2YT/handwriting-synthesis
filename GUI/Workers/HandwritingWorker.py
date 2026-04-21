@@ -3,7 +3,7 @@ from queue import Queue
 
 from PySide6.QtCore import QThread, Signal, Slot
 
-from synthesizer_tf2.hand import Hand
+from AI.Synthesizer.hand import Hand
 from SVG.Handwriting import Handwriting, HandwritingGenerationConfig
 
 class HandwritingWorker(QThread):
