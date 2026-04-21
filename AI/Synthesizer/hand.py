@@ -1,6 +1,7 @@
 import os
 import logging
 from pathlib import Path
+from unidecode import unidecode
 
 import numpy as np
 import drawsvg as dw
@@ -42,7 +43,10 @@ class Hand(object):
         self.nn.restore()
 
     def write(self, lines, biases=None, styles=None, stroke_colors=None, stroke_widths=None) -> Handwriting:
-        valid_char_set = set(drawing.alphabet)
+        #convert unicode to its closet ascii representation if needed
+        lines = [unidecode(line) for line in lines]
+
+        #warnings (TODO: implement these somehow in the GUI instead of just erroring out)
         for line_num, line in enumerate(lines):
             if len(line) > 75:
                 raise ValueError(
@@ -53,13 +57,8 @@ class Hand(object):
                 )
 
             for char in line:
-                if char not in valid_char_set:
-                    raise ValueError(
-                        (
-                            "Invalid character {} detected in line {}. "
-                            "Valid character set is {}"
-                        ).format(char, line_num, valid_char_set)
-                    )
+                if char == "\t":
+                    raise ValueError("Tabs are not allowed in input text")
 
         strokes = self._sample(lines, biases=biases, styles=styles)
         return self._draw(strokes, lines, stroke_colors=stroke_colors, stroke_widths=stroke_widths)
