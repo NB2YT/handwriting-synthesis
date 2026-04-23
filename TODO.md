@@ -1,4 +1,4 @@
-1. fix second time generation messing up positioning
+1. fix second time generation messing up positioning ✅
 2. add selection + transform system 🔁
 3. add canvas home button
 4. make the style selector show sample handwriting
@@ -11,3 +11,5 @@
 11. add revert to defaults button in settings
 12. fix macos scroll scaling
 13. add ability to touch up handwriting
+
+V2: add pipeline for training upon and photo of the users handwriting
